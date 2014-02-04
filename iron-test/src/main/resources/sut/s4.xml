@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?><sut validators="">
+    <mobile>
+    	<class>com.ironsource.mobile.MobileSO</class>
+        <serverHost>172.17.25.133</serverHost>
+        <serverPort>4321</serverPort>	
+    </mobile>
+    <fiddlerJsonRpcClient>
+        	<class>com.ironsource.mobile.fiddler.FiddlerJsonRpcClient</class>
+		<host>127.0.0.1</host>
+		<port>3333</port>
+    </fiddlerJsonRpcClient>  
+</sut>

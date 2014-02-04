@@ -246,13 +246,25 @@ public class MCTesterTests extends SystemTestCase4 {
 		report.report("waiting for install to finish");
 		
 		if (!uiautomatorClient.waitForExists(new Selector().setText("OPEN"), 600000)) {
-			throw new Exception("Did not finish downloading after 6 minutes");
+			throw new Exception("Did not finish downloading after 10 minutes");
 		}  
 		report.step("Install Completed");
 		Thread.sleep(2000);
 		flowHtmlReport.addTitledImage("App Installed", adb.getScreenshotWithAdb(null));
-		mobile.waitForRSCode(RSCode.INSATLL, FlowCode.OFFERWALL, 600000);
+		try{
+			mobile.waitForRSCode(RSCode.INSATLL, FlowCode.OFFERWALL, 5*60000);
+		} catch (Exception e) {
+			report.report("rs code '+' wasn't reported after 5 min", Reporter.WARNING);
+		}
+		
+		uiautomatorClient.click(new Selector().setText("UNINSTALL"));
+		
+		uiautomatorClient.registerClickUiObjectWatcher("uninstall", new Selector[]{new Selector().setText("Do you want to uninstall this app?")}, new Selector().setText("OK"));
+		if (!uiautomatorClient.waitForExists(new Selector().setText("INSTALL"), 60000)) {
+		    report.report("uninstall didnt complete after 10 minutes", Reporter.WARNING);
+		} 
 		report.report("screen flow", flowHtmlReport.getHtmlReport(), Reporter.PASS, false, true, false, false);
+		
 	}
 	
 	/**
@@ -444,8 +456,6 @@ public class MCTesterTests extends SystemTestCase4 {
 		
 	}
 	
-	
-
 	//The setters and getters are the way to expose parameters to test
 	
 	public int getLogcatReportTimeout() {

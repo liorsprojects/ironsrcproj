@@ -14,6 +14,7 @@ import junit.framework.SystemTestCase4;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.python.modules.re;
 import org.topq.uiautomator.AutomatorService;
 import org.topq.uiautomator.Selector;
 
@@ -24,6 +25,8 @@ import com.ironsource.mobile.MobileSO;
 import com.ironsource.mobile.RSCode;
 import com.ironsource.mobile.fiddler.FiddlerJsonRpcClient;
 import com.ironsource.mobile.reporters.ImageFlowHtmlReport;
+import com.ironsource.mobile.webview.InnerItemWebElement;
+import com.ironsource.mobile.webview.OfferWallWebView;
 
 public class MCTesterTests extends SystemTestCase4 {
 
@@ -31,7 +34,7 @@ public class MCTesterTests extends SystemTestCase4 {
 	private static ADBConnection adb;
 	private static AutomatorService uiautomatorClient;
 	private static MobileClient robotiumClient;
-	private static List<WebElement> offerwallElements;
+	private static OfferWallWebView offerWallWebView;
 	private static FiddlerJsonRpcClient fiddlerJsonRpcClient; 
 	ImageFlowHtmlReport flowHtmlReport;
 	
@@ -88,7 +91,6 @@ public class MCTesterTests extends SystemTestCase4 {
 			
 		report.report("retrieving robotium client");
 		robotiumClient = (MobileClient) mobile.getRobotiumClient();
-		offerwallElements = new ArrayList<WebElement>();
 		
 		captureWebview();		
 	}
@@ -121,19 +123,10 @@ public class MCTesterTests extends SystemTestCase4 {
 		mobile.waitForRSCode(RSCode.IMPRESSION, FlowCode.OFFERWALL, logcatReportTimeout);
 		
 		flowHtmlReport.addTitledImage("Clicked on 'Show (not force)'", adb.getScreenshotWithAdb(null));
-		boolean elementFound = false;
-		for (WebElement element : offerwallElements) {
-			if("noThanks".equals(element.getId()) || "noThanksOrangeOffer".equals(element.getId())) {
-				report.report("found element with id = 'noThanks' and about to click on it");
-				uiautomatorClient.click(element.getX(), element.getY());
-				report.step("clicked on {x} button");
-				elementFound = true;
-				break;
-			}
-		}
-		if(!elementFound) {
-			throw new Exception("Element with id = 'noThanks' wasent found");
-		}
+		
+		report.report("about to click on close button");
+		clickOfferwallCloseButton();
+		
 		mobile.waitForRSCode(RSCode.CLOSE, FlowCode.OFFERWALL, logcatReportTimeout);
 		flowHtmlReport.addTitledImage("After click on {X}", adb.getScreenshotWithAdb(null));
 		report.report("screen flow", flowHtmlReport.getHtmlReport(), Reporter.PASS, false, true, false, false);
@@ -180,80 +173,88 @@ public class MCTesterTests extends SystemTestCase4 {
 		mobile.waitForRSCode(RSCode.IMPRESSION, FlowCode.OFFERWALL, logcatReportTimeout);
 		
 		flowHtmlReport.addTitledImage("Clicked on 'Show (not force)'", adb.getScreenshotWithAdb(null));
-		
-		boolean elementFound = false;
-		for (WebElement element : offerwallElements) {
-			if("stars".equals(element.getClassName())) {
-				report.report("found element with className = 'stars' and about to click on it");
-				uiautomatorClient.click(element.getX(), element.getY());
-				report.step("clicked on 'stars' of the first app");
-				elementFound = true;
-				break;
-			}
-		}
-		if(!elementFound) {
-			throw new Exception("Element with className = 'stars' wasen't found");
-		}
-		mobile.waitForRSCode(RSCode.CLICK, FlowCode.OFFERWALL, 10000);
-		
-		flowHtmlReport.addTitledImage("After click on application in offrewall", adb.getScreenshotWithAdb(null));
-		
-		report.step("waiting for playstore");
-		if (!uiautomatorClient.waitForExists(new Selector().setText("INSTALL"), 5000)) {
-		    throw new Exception("Did not navigated to Playstore (check internet connection");
-		} 
-		
-		flowHtmlReport.addTitledImage("Playstore", adb.getScreenshotWithAdb(null));
 		Thread.sleep(2000);
-		report.report("click INSTALL");
-		uiautomatorClient.click(new Selector().setText("INSTALL"));
-
-		if (!uiautomatorClient.waitForExists(new Selector().setText("ACCEPT"), 5000)) {
-			throw new Exception("Accept page not visible");
-		} 
-		flowHtmlReport.addTitledImage("After click INSTALL", adb.getScreenshotWithAdb(null));
-
-		report.report("click ACCEPT");
-		uiautomatorClient.click(new Selector().setText("ACCEPT"));
 		
-	
+		List<InnerItemWebElement> innerItems = offerWallWebView.getInnerItemWebElementList();
+		Selector openSelector = new Selector().setText("OPEN");
+		Selector notCountrySelector = new Selector().setText("This item isn't available in your country.");
+		Selector notSupporSelector = new Selector().setText("Your device is’nt compatible with this version.");
 		
-		if(uiautomatorClient.waitForExists(new Selector().setText("Downloading a large app"), 2000)) {
+		
+		for (InnerItemWebElement innerItemWebElement : innerItems) {
+			report.step("clicking on item with title: " + innerItemWebElement.getAppName());
+			uiautomatorClient.click(innerItemWebElement.getItemWraper().getX(), innerItemWebElement.getItemWraper().getX());
+			mobile.waitForRSCode(RSCode.CLICK, FlowCode.OFFERWALL, 10000);
+			flowHtmlReport.addTitledImage("After click on application in offrewall", adb.getScreenshotWithAdb(null));
+			report.step("waiting for playstore");
+		
+			if (!uiautomatorClient.waitForExists(new Selector().setText("INSTALL"), 5000)) {
+				if(uiautomatorClient.exist(openSelector)) {
+					report.report("the app: " + innerItemWebElement.getAppName() + "is allready installed");
+				} else if (uiautomatorClient.exist(notCountrySelector)) {
+					report.report("the app: " + innerItemWebElement.getAppName() + "is not suppoorted in our country");
+				} else if (uiautomatorClient.exist(notSupporSelector)) {
+					report.report("the app: " + innerItemWebElement.getAppName() + "is incompatible with yor device");
+				} else {
+					throw new Exception("Did not navigated to Playstore (check internet connection or proxy settings)");
+				}
+				report.report("about to try again for diffrent app");
+				uiautomatorClient.pressKey("back");
+				continue;
+			} 
+			
+			flowHtmlReport.addTitledImage("Playstore", adb.getScreenshotWithAdb(null));
+			Thread.sleep(2000);
+			report.report("click INSTALL");
+			uiautomatorClient.click(new Selector().setText("INSTALL"));
+			
+			if (!uiautomatorClient.waitForExists(new Selector().setText("ACCEPT"), 5000)) {
+				throw new Exception("Accept page not visible");
+			} 
+			flowHtmlReport.addTitledImage("After click INSTALL", adb.getScreenshotWithAdb(null));
+			
+			report.report("click ACCEPT");
+			uiautomatorClient.click(new Selector().setText("ACCEPT"));
+			
+			if(uiautomatorClient.waitForExists(new Selector().setText("Downloading a large app"), 2000)) {
 //			//TOOD - verify 'Download using Wi-Fi only' checkbox is checked.
 //			ObjInfo obj  = uiautomatorClient.objInfo(new Selector().setText("Download using Wi-Fi only"));
 //			obj.isChecked()
-			uiautomatorClient.click(new Selector().setText("Proceed").setClassName("android.widget.Button"));
-		}
-		
-		if (!uiautomatorClient.waitForExists(new Selector().setClassName("android.widget.ProgressBar"), 10000)) {
-			throw new Exception("Installing not started");
+				uiautomatorClient.click(new Selector().setText("Proceed").setClassName("android.widget.Button"));
+			}
 			
-		} 
-		report.step("installing in progress...");
-		flowHtmlReport.addTitledImage("while installing after accept", adb.getScreenshotWithAdb(null));
-
-		report.report("waiting for install to finish");
-		
-		if (!uiautomatorClient.waitForExists(new Selector().setText("OPEN"), 600000)) {
-			throw new Exception("Did not finish downloading after 10 minutes");
-		}  
-		report.step("Install Completed");
-		Thread.sleep(2000);
-		flowHtmlReport.addTitledImage("App Installed", adb.getScreenshotWithAdb(null));
-		try{
-			mobile.waitForRSCode(RSCode.INSATLL, FlowCode.OFFERWALL, 5*60000);
-		} catch (Exception e) {
-			report.report("rs code '+' wasn't reported after 5 min", Reporter.WARNING);
+			if (!uiautomatorClient.waitForExists(new Selector().setClassName("android.widget.ProgressBar"), 10000)) {
+				throw new Exception("Installing not started");
+				
+			} 
+			report.step("installing in progress...");
+			flowHtmlReport.addTitledImage("while installing after accept", adb.getScreenshotWithAdb(null));
+			
+			report.report("waiting for install to finish");
+			
+			if (!uiautomatorClient.waitForExists(new Selector().setText("OPEN"), 600000)) {
+				report.report("Did not finish downloading after 10 minutes", Reporter.WARNING);
+			}  
+			report.step("Install Completed");
+			Thread.sleep(2000);
+			flowHtmlReport.addTitledImage("App Installed", adb.getScreenshotWithAdb(null));
+			
+			try{
+				mobile.waitForRSCode(RSCode.INSATLL, FlowCode.OFFERWALL, 5*60000);
+			} catch (Exception e) {
+				report.report("rs code '+' wasn't reported after 5 min", Reporter.WARNING);
+			}
+			
+			uiautomatorClient.click(new Selector().setText("UNINSTALL"));
+			
+			uiautomatorClient.registerClickUiObjectWatcher("uninstall", new Selector[]{new Selector().setText("Do you want to uninstall this app?")}, new Selector().setText("OK"));
+			if (!uiautomatorClient.waitForExists(new Selector().setText("INSTALL"), 60000)) {
+				report.report("uninstall didnt complete after 10 minutes", Reporter.WARNING);
+			} 
+			break;
 		}
-		
-		uiautomatorClient.click(new Selector().setText("UNINSTALL"));
-		
-		uiautomatorClient.registerClickUiObjectWatcher("uninstall", new Selector[]{new Selector().setText("Do you want to uninstall this app?")}, new Selector().setText("OK"));
-		if (!uiautomatorClient.waitForExists(new Selector().setText("INSTALL"), 60000)) {
-		    report.report("uninstall didnt complete after 10 minutes", Reporter.WARNING);
-		} 
 		report.report("screen flow", flowHtmlReport.getHtmlReport(), Reporter.PASS, false, true, false, false);
-		
+				
 	}
 	
 	/**
@@ -328,55 +329,26 @@ public class MCTesterTests extends SystemTestCase4 {
 		Selector notCountrySelector = new Selector().setText("This item isn't available in your country.");
 		Selector notSupporSelector = new Selector().setText("Your device is’nt compatible with this version.");
 		
-		String currentApp = "";
-		for(WebElement element : getClickToMarketElements()) {
-			
-			if("inner_item".equals(element.getClassName())) {
-				currentApp = element.getText();
-				break;
+		List<InnerItemWebElement> innerItemWebElements = offerWallWebView.getInnerItemWebElementList();
+		for (InnerItemWebElement innerItemWebElement : innerItemWebElements) {
+			List<WebElement> clickElements = innerItemWebElement.getInnerElements();
+			for (WebElement webElement : clickElements) {
+				report.report("about to click on element with class '" + webElement.getClassName() + "' of app '"+ innerItemWebElement.getAppName() +"'");
+				uiautomatorClient.click(webElement.getX(), webElement.getY());
+				if(uiautomatorClient.waitForExists(downloadSelector, 10000) ||
+						uiautomatorClient.waitForExists(openSelector, 10000) ||
+							uiautomatorClient.waitForExists(notCountrySelector, 10000)||
+								uiautomatorClient.waitForExists(notSupporSelector, 10000)) {	
+					report.report("succeeded to navigate to playstore by pressing element with class: " + webElement.getClassName());
+					flowHtmlReport.addTitledImage("After click on element with class: " +webElement.getClassName()+ " in offrewall", adb.getScreenshotWithAdb(null));
+					uiautomatorClient.pressKey("back");
+				} else {
+					report.report("did not succeed navigation to playstore by pressing element with class: " + webElement.getClassName(), Reporter.FAIL);
+				}	
 			}
-			report.report("about to click on element with class '" + element.getClassName() + "' of app '"+ currentApp +"'");
-			uiautomatorClient.click(element.getX(), element.getY());
-			
-			if(uiautomatorClient.waitForExists(downloadSelector, 10000) ||
-					uiautomatorClient.waitForExists(openSelector, 10000) ||
-						uiautomatorClient.waitForExists(notCountrySelector, 10000)||
-							uiautomatorClient.waitForExists(notSupporSelector, 10000)) {		
-				report.report("succeeded to navigate to playstore by pressing element with class: " + element.getClassName());
-				flowHtmlReport.addTitledImage("After click on element with class: " +element.getClassName()+ " in offrewall", adb.getScreenshotWithAdb(null));
-				uiautomatorClient.pressKey("back");
-				
-			}else {
-				throw new Exception("did not succeed navigation to playstore by pressing element with class: " + element.getClassName());
-			}	
 		}
 	}
 	
-	private List<WebElement> getClickToMarketElements() throws Exception {
-		
-		List<String> elements = new ArrayList<String>();
-		elements.add("inner_item");
-		elements.add("cover-img-icon");
-		elements.add("button_inner");
-		elements.add("stars");
-		elements.add("rateStars");
-		elements.add("icon_inner");
-		elements.add("title");
-		elements.add("cover-img-item");
-		elements.add("downloadInner");
-		elements.add("rate_text");
-		elements.add("download_button");
-		elements.add("desc");
-		
-		
-		List<WebElement> elementsToClick = new ArrayList<WebElement>();
-		for (WebElement webElement : offerwallElements) {
-			if(elements.contains(webElement.getClassName()) || elements.contains(webElement.getId())) {
-				elementsToClick.add(webElement);
-			}
-		}
-		return elementsToClick;
-	}
 	
 	@After
 	public void tearDown() throws Exception{
@@ -398,10 +370,11 @@ public class MCTesterTests extends SystemTestCase4 {
 		Thread.sleep(8000);
 		
 		report.report("gather all offerwall elements");
-		offerwallElements = robotiumClient.getCurrentWebElements();
+		List<WebElement> offerwallElements = robotiumClient.getCurrentWebElements();
 		if(offerwallElements.size() == 0) {
 			throw new Exception("could not capture offerwall elements");
 		} else {
+			offerWallWebView = new OfferWallWebView(offerwallElements);
 			report.startLevel("Offerwall Elements");
 			StringBuffer sb = new StringBuffer("OfferWall Elements").append("\n")
 					.append("============================================").append("\n");
@@ -451,6 +424,16 @@ public class MCTesterTests extends SystemTestCase4 {
 		} 
 		
 	}
+	
+	private void clickOfferwallCloseButton() {
+		WebElement closeElement = offerWallWebView.getCloseButton();
+		if(closeElement != null) {
+			uiautomatorClient.click(closeElement.getX(), closeElement.getY());
+		} else {
+			report.report("close button didn't set properly", Reporter.FAIL);
+		}
+	}
+	
 	
 	//The setters and getters are the way to expose parameters to test
 	

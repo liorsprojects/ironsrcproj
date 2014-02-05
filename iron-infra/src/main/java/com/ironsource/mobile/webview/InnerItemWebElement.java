@@ -9,6 +9,16 @@ public class InnerItemWebElement {
 
 	private String appName = "undefined";
 	private List<WebElement> innerElements;
+	private WebElement itemWraper;
+	
+	
+	public WebElement getItemWraper() {
+		return itemWraper;
+	}
+
+	public void setItemWraper(WebElement itemWraper) {
+		this.itemWraper = itemWraper;
+	}
 
 	public InnerItemWebElement() {
 		innerElements = new ArrayList<WebElement>();

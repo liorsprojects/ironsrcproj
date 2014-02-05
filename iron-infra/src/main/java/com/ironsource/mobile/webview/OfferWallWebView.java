@@ -19,14 +19,12 @@ public class OfferWallWebView {
 			if("noThanks".equals(webElement.getId()) || "noThanksOrangeOffer".equals(webElement.getId())) {
 				closeButton = webElement;
 			} else if("inner_item".equals(webElement.getClass())){
-				if(tempInnerItem == null) {
-					tempInnerItem = new InnerItemWebElement();
-					continue;
-				} else {
+				if(tempInnerItem != null) {
 					innerItemWebElements.add(tempInnerItem);
-					tempInnerItem = new InnerItemWebElement();
-					continue;
 				}
+				tempInnerItem = new InnerItemWebElement();
+				tempInnerItem.setItemWraper(webElement);
+				continue;
 			}
 			if("title".equals(webElement.getClassName())) {
 				tempInnerItem.setAppName(webElement.getText());
@@ -53,11 +51,11 @@ public class OfferWallWebView {
 		this.ownElements = ownElements;
 	}
 
-	public List<InnerItemWebElement> getAdElementList() {
+	public List<InnerItemWebElement> getInnerItemWebElementList() {
 		return innerItemWebElements;
 	}
 
-	public void setAdElementList(List<InnerItemWebElement> innerItemWebElements) {
+	public void setInnerItemElementList(List<InnerItemWebElement> innerItemWebElements) {
 		this.innerItemWebElements = innerItemWebElements;
 	}
 	
@@ -65,7 +63,7 @@ public class OfferWallWebView {
 		ownElements.add(element);
 	}
 	
-	public void addAdElement(InnerItemWebElement element) {
+	public void addInnerItemElement(InnerItemWebElement element) {
 		innerItemWebElements.add(element);
 	}
 

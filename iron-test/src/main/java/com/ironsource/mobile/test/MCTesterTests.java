@@ -3,7 +3,6 @@ package com.ironsource.mobile.test;
 import il.co.topq.mobile.client.impl.MobileClient;
 import il.co.topq.mobile.client.impl.WebElement;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import jsystem.framework.ParameterProperties;
@@ -14,7 +13,6 @@ import junit.framework.SystemTestCase4;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.python.modules.re;
 import org.topq.uiautomator.AutomatorService;
 import org.topq.uiautomator.Selector;
 
@@ -22,6 +20,7 @@ import com.ironsource.mobile.ADBConnection;
 import com.ironsource.mobile.FlowCode;
 import com.ironsource.mobile.MobileCoreMsgCode;
 import com.ironsource.mobile.MobileSO;
+import com.ironsource.mobile.PlayStoreMessage;
 import com.ironsource.mobile.RSCode;
 import com.ironsource.mobile.fiddler.FiddlerJsonRpcClient;
 import com.ironsource.mobile.reporters.ImageFlowHtmlReport;
@@ -36,7 +35,7 @@ public class MCTesterTests extends SystemTestCase4 {
 	private static MobileClient robotiumClient;
 	private static OfferWallWebView offerWallWebView;
 	private static FiddlerJsonRpcClient fiddlerJsonRpcClient; 
-	ImageFlowHtmlReport flowHtmlReport;
+	private ImageFlowHtmlReport flowHtmlReport;
 	
 	public static final String MCTESTER_ACTIVITY = "com.mobilecore.mctester.MainActivity";
 
@@ -65,12 +64,11 @@ public class MCTesterTests extends SystemTestCase4 {
 			adb = mobile.getAdbConnection();
 		}
 		
-		flowHtmlReport = new ImageFlowHtmlReport();
-		
 		if(adb != null) {
 			report.report("clearing logcat");
 			adb.clearLogcat();
 		}
+		flowHtmlReport = new ImageFlowHtmlReport();
 		
 		adb.clearLogcatMessageRecorder();
 		
@@ -166,10 +164,9 @@ public class MCTesterTests extends SystemTestCase4 {
 		report.step("MCTester Launched");
 		
 		mobile.waitForManagerMessageToContain(MobileCoreMsgCode.OFFERWALL_MANAGER, "from:LOADING , to:READY_TO_SHOW" , 15000);
-		
 		uiautomatorClient.click(new Selector().setText("Show (not force)"));
 		report.report("wait for transiton of webview to complete");
-		mobile.waitForRSCode(RSCode.WALL, FlowCode.OFFERWALL, 600000);
+		mobile.waitForRSCode(RSCode.WALL, FlowCode.OFFERWALL, logcatReportTimeout);
 		mobile.waitForRSCode(RSCode.IMPRESSION, FlowCode.OFFERWALL, logcatReportTimeout);
 		
 		flowHtmlReport.addTitledImage("Clicked on 'Show (not force)'", adb.getScreenshotWithAdb(null));
@@ -177,10 +174,10 @@ public class MCTesterTests extends SystemTestCase4 {
 		
 		List<InnerItemWebElement> innerItems = offerWallWebView.getInnerItemWebElementList();
 		Selector openSelector = new Selector().setText("OPEN");
-		Selector notCountrySelector = new Selector().setText("This item isn't available in your country.");
-		Selector notSupporSelector = new Selector().setText("Your device is’nt compatible with this version.");
+		Selector notCountrySelector = new Selector().setText(PlayStoreMessage.COUNTRY_SUPPORT);
+		Selector notSupporSelector = new Selector().setText(PlayStoreMessage.DEVICE_COMPATIBLE);
 		
-		
+		boolean foundValidInstall = false;
 		for (InnerItemWebElement innerItemWebElement : innerItems) {
 			report.step("clicking on item with title: " + innerItemWebElement.getAppName());
 			uiautomatorClient.click(innerItemWebElement.getItemWraper().getX(), innerItemWebElement.getItemWraper().getX());
@@ -189,6 +186,7 @@ public class MCTesterTests extends SystemTestCase4 {
 			report.step("waiting for playstore");
 		
 			if (!uiautomatorClient.waitForExists(new Selector().setText("INSTALL"), 5000)) {
+				flowHtmlReport.addTitledImage("Playstore for " + innerItemWebElement.getAppName(), adb.getScreenshotWithAdb(null));
 				if(uiautomatorClient.exist(openSelector)) {
 					report.report("the app: " + innerItemWebElement.getAppName() + "is allready installed");
 				} else if (uiautomatorClient.exist(notCountrySelector)) {
@@ -202,8 +200,8 @@ public class MCTesterTests extends SystemTestCase4 {
 				uiautomatorClient.pressKey("back");
 				continue;
 			} 
-			
-			flowHtmlReport.addTitledImage("Playstore", adb.getScreenshotWithAdb(null));
+			foundValidInstall = true;
+			flowHtmlReport.addTitledImage("valid Playstore with INSTALL button", adb.getScreenshotWithAdb(null));
 			Thread.sleep(2000);
 			report.report("click INSTALL");
 			uiautomatorClient.click(new Selector().setText("INSTALL"));
@@ -252,6 +250,9 @@ public class MCTesterTests extends SystemTestCase4 {
 				report.report("uninstall didnt complete after 10 minutes", Reporter.WARNING);
 			} 
 			break;
+		}
+		if(!foundValidInstall) {
+			report.report("did not find valid installation in offerwall" ,Reporter.WARNING);
 		}
 		report.report("screen flow", flowHtmlReport.getHtmlReport(), Reporter.PASS, false, true, false, false);
 				
@@ -324,29 +325,32 @@ public class MCTesterTests extends SystemTestCase4 {
 		
 		flowHtmlReport.addTitledImage("Clicked on 'Show (not force)'", adb.getScreenshotWithAdb(null));
 		
-		Selector downloadSelector = new Selector().setText("INSTALL");
-		Selector openSelector = new Selector().setText("OPEN");
-		Selector notCountrySelector = new Selector().setText("This item isn't available in your country.");
-		Selector notSupporSelector = new Selector().setText("Your device is’nt compatible with this version.");
-		
 		List<InnerItemWebElement> innerItemWebElements = offerWallWebView.getInnerItemWebElementList();
 		for (InnerItemWebElement innerItemWebElement : innerItemWebElements) {
 			List<WebElement> clickElements = innerItemWebElement.getInnerElements();
 			for (WebElement webElement : clickElements) {
-				report.report("about to click on element with class '" + webElement.getClassName() + "' of app '"+ innerItemWebElement.getAppName() +"'");
+				String elementId = "";
+				String elementClass = "";
+				if(!webElement.getClassName().isEmpty()) {
+					elementClass = "class='" + webElement.getClassName() + "' ";
+				}
+				if(!webElement.getId().isEmpty()) {
+					elementId = "id='" + webElement.getId() + "'";
+				}
+				String reportMsg = "about to click on element with "+ elementClass + elementId + " of app '"+ innerItemWebElement.getAppName() +"'";
+				flowHtmlReport.addTitledImage(reportMsg, adb.getScreenshotWithAdb(null));
+				report.report(reportMsg);
 				uiautomatorClient.click(webElement.getX(), webElement.getY());
-				if(uiautomatorClient.waitForExists(downloadSelector, 10000) ||
-						uiautomatorClient.waitForExists(openSelector, 10000) ||
-							uiautomatorClient.waitForExists(notCountrySelector, 10000)||
-								uiautomatorClient.waitForExists(notSupporSelector, 10000)) {	
-					report.report("succeeded to navigate to playstore by pressing element with class: " + webElement.getClassName());
-					flowHtmlReport.addTitledImage("After click on element with class: " +webElement.getClassName()+ " in offrewall", adb.getScreenshotWithAdb(null));
-					uiautomatorClient.pressKey("back");
+				if(uiautomatorClient.waitForExists(new Selector().setTextContains(innerItemWebElement.getAppName()).setPackageName("com.android.vending"), 5000)) {
+					report.report("navigation to playstore secceeded after pressing element with " + elementClass + elementId);
 				} else {
-					report.report("did not succeed navigation to playstore by pressing element with class: " + webElement.getClassName(), Reporter.FAIL);
+					report.report("navigation to playstore did not secceed after pressing element with " + elementClass + elementId, Reporter.FAIL);
 				}	
+				flowHtmlReport.addTitledImage("After click on element with class: " +webElement.getClassName()+ " in offrewall", adb.getScreenshotWithAdb(null));
+				uiautomatorClient.pressKey("back");
 			}
 		}
+		report.report("screen flow", flowHtmlReport.getHtmlReport(), Reporter.PASS, false, true, false, false);
 	}
 	
 	
@@ -365,7 +369,7 @@ public class MCTesterTests extends SystemTestCase4 {
 		report.report("launch MCTester App");
 		robotiumClient.launch(MCTESTER_ACTIVITY);
 		mobile.waitForManagerMessageToContain(MobileCoreMsgCode.OFFERWALL_MANAGER, "from:LOADING , to:READY_TO_SHOW" , 15000);
-		Thread.sleep(2000);
+		Thread.sleep(3000);
 		robotiumClient.clickOnButtonWithText("Show if ready");
 		Thread.sleep(8000);
 		

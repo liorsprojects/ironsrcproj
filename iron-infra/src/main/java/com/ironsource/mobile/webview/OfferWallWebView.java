@@ -18,7 +18,7 @@ public class OfferWallWebView {
 		for (WebElement webElement : allWebElements) {
 			if("noThanks".equals(webElement.getId()) || "noThanksOrangeOffer".equals(webElement.getId())) {
 				closeButton = webElement;
-			} else if("inner_item".equals(webElement.getClass())){
+			} else if("inner_item".equals(webElement.getClassName())){
 				if(tempInnerItem != null) {
 					innerItemWebElements.add(tempInnerItem);
 				}
@@ -26,9 +26,10 @@ public class OfferWallWebView {
 				tempInnerItem.setItemWraper(webElement);
 				continue;
 			}
-			if("title".equals(webElement.getClassName())) {
-				tempInnerItem.setAppName(webElement.getText());
-			} else {
+			if(tempInnerItem != null) {
+				if("title ellipsed-text".equals(webElement.getClassName())) {
+					tempInnerItem.setAppName(webElement.getText());	
+				}
 				tempInnerItem.addElement(webElement);
 			}
 		}

@@ -137,10 +137,9 @@ public class MobileSO extends SystemObjectImpl {
 	public void waitForRSCode(RSCode rsCode, FlowCode flowCode, int timeout) throws Exception {
 		long now = System.currentTimeMillis();
 		boolean exist = false;
-		report.report("waiting for RS Code '"+ rsCode.getRsCode() +"' for Flow " + flowCode.getFlowCode());
+		report.report("waiting for RS Code '"+ rsCode.getRsCode() +"' for Flow " + flowCode.getFlowCode() + "with timeout of " + timeout + " millis");
 		List<LogCatMessage> messages;
-		String lookString = "\"Flow\":\"" + flowCode.getFlowCode() + "\"";
-		report.report("looking for :  " + lookString);
+
 		while (!exist) {
 			if (System.currentTimeMillis() - now > timeout) {
 				throw new Exception("Did not find expected RS code: " + rsCode.getRsCode() + " after: " + timeout + " millis");

@@ -7,10 +7,14 @@ import java.util.List;
 
 public class InnerItemWebElement {
 
+
 	private String appName = "undefined";
 	private List<WebElement> innerElements;
 	private WebElement itemWraper;
 	
+	public InnerItemWebElement() {
+		innerElements = new ArrayList<WebElement>();
+	}
 	
 	public WebElement getItemWraper() {
 		return itemWraper;
@@ -20,9 +24,6 @@ public class InnerItemWebElement {
 		this.itemWraper = itemWraper;
 	}
 
-	public InnerItemWebElement() {
-		innerElements = new ArrayList<WebElement>();
-	}
 
 	public String getAppName() {
 		return appName;

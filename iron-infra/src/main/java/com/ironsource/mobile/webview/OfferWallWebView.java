@@ -9,11 +9,32 @@ public class OfferWallWebView {
 
 	private WebElement closeButton;
 	private List<WebElement> ownElements;
-	private List<AdItemWebElement> adElementList;
+	private List<InnerItemWebElement> innerItemWebElements;
 	
-	public OfferWallWebView() {
+	public OfferWallWebView(List<WebElement> allWebElements) {
 		ownElements = new ArrayList<WebElement>();
-		adElementList = new ArrayList<AdItemWebElement>();
+		innerItemWebElements = new ArrayList<InnerItemWebElement>();
+		InnerItemWebElement tempInnerItem = null;
+		for (WebElement webElement : allWebElements) {
+			if("noThanks".equals(webElement.getId()) || "noThanksOrangeOffer".equals(webElement.getId())) {
+				closeButton = webElement;
+			} else if("inner_item".equals(webElement.getClass())){
+				if(tempInnerItem == null) {
+					tempInnerItem = new InnerItemWebElement();
+					continue;
+				} else {
+					innerItemWebElements.add(tempInnerItem);
+					tempInnerItem = new InnerItemWebElement();
+					continue;
+				}
+			}
+			if("title".equals(webElement.getClassName())) {
+				tempInnerItem.setAppName(webElement.getText());
+			} else {
+				tempInnerItem.addElement(webElement);
+			}
+		}
+		innerItemWebElements.add(tempInnerItem);
 	}
 
 	public WebElement getCloseButton() {
@@ -32,20 +53,20 @@ public class OfferWallWebView {
 		this.ownElements = ownElements;
 	}
 
-	public List<AdItemWebElement> getAdElementList() {
-		return adElementList;
+	public List<InnerItemWebElement> getAdElementList() {
+		return innerItemWebElements;
 	}
 
-	public void setAdElementList(List<AdItemWebElement> adElementList) {
-		this.adElementList = adElementList;
+	public void setAdElementList(List<InnerItemWebElement> innerItemWebElements) {
+		this.innerItemWebElements = innerItemWebElements;
 	}
 	
 	public void addOwnItem(WebElement element) {
 		ownElements.add(element);
 	}
 	
-	public void addAdElement(AdItemWebElement element) {
-		adElementList.add(element);
+	public void addAdElement(InnerItemWebElement element) {
+		innerItemWebElements.add(element);
 	}
 
 }

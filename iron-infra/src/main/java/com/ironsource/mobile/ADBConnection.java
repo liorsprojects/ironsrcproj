@@ -89,6 +89,13 @@ public class ADBConnection extends SystemObjectImpl implements IDeviceChangeList
 		return returnedMessages;
 	}
 
+	/**
+	 * this method clear all the logcat recorder lists.
+	 */
+	public void clearLogcatMessageRecorder() {
+		mobileCoreLogcatRecorder.clear();
+	}
+	
 	private void waitForDeviceToConnect(int timeoutForDeviceConnection) throws Exception {
 		final long start = System.currentTimeMillis();
 		while (device == null) {

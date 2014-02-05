@@ -23,7 +23,7 @@ public class MobileCoreLogcatRecorder implements LogCatListener {
 	private Vector<LogCatMessage> stickeezManagerMessages;
 	private Vector<LogCatMessage> sliderManagerMessages;
 	private Vector<LogCatMessage> mobileCoreMessages;
-	IDevice device;
+	private IDevice device;
 
 	public MobileCoreLogcatRecorder(IDevice device) {
 		this.device = device;
@@ -70,6 +70,18 @@ public class MobileCoreLogcatRecorder implements LogCatListener {
 	}
 	public List<LogCatMessage> getMobileCoreMessages() {
 		return new ArrayList<LogCatMessage>(mobileCoreMessages);
+	}
+	
+	/**
+	 * this method clear all the logcat lists
+	 */
+	public void clear() {
+		rsMessages = new Vector<LogCatMessage>();
+		offerWallManagerMessages = new Vector<LogCatMessage>();
+		stickeezManagerMessages = new Vector<LogCatMessage>();
+		sliderManagerMessages = new Vector<LogCatMessage>();
+		mobileCoreMessages = new Vector<LogCatMessage>();
+		
 	}
 	
 	public void recordMobileCoreLogcatMessages() throws Exception {

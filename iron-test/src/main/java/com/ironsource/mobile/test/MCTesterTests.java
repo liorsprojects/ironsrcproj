@@ -3,40 +3,27 @@ package com.ironsource.mobile.test;
 import il.co.topq.mobile.client.impl.MobileClient;
 import il.co.topq.mobile.client.impl.WebElement;
 
-import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 
-import jsystem.extensions.report.html.Report;
 import jsystem.framework.ParameterProperties;
 import jsystem.framework.TestProperties;
-import jsystem.framework.report.ReportElement;
 import jsystem.framework.report.Reporter;
-import jsystem.framework.report.ReporterHelper;
 import junit.framework.SystemTestCase4;
 
-import org.json.simple.JSONObject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.python.modules.re;
 import org.topq.uiautomator.AutomatorService;
-import org.topq.uiautomator.ObjInfo;
 import org.topq.uiautomator.Selector;
 
-import android.content.res.ObbInfo;
-
-import com.android.ddmlib.logcat.LogCatMessage;
-import com.android.uiautomator.core.UiObject;
 import com.ironsource.mobile.ADBConnection;
 import com.ironsource.mobile.FlowCode;
-import com.ironsource.mobile.LogcatHelper;
 import com.ironsource.mobile.MobileCoreMsgCode;
 import com.ironsource.mobile.MobileSO;
 import com.ironsource.mobile.RSCode;
 import com.ironsource.mobile.fiddler.FiddlerJsonRpcClient;
 import com.ironsource.mobile.reporters.ImageFlowHtmlReport;
-import com.jhlabs.image.WoodFilter;
 
 public class MCTesterTests extends SystemTestCase4 {
 
@@ -81,6 +68,8 @@ public class MCTesterTests extends SystemTestCase4 {
 			report.report("clearing logcat");
 			adb.clearLogcat();
 		}
+		
+		adb.clearLogcatMessageRecorder();
 		
 	}
 
@@ -134,7 +123,7 @@ public class MCTesterTests extends SystemTestCase4 {
 		flowHtmlReport.addTitledImage("Clicked on 'Show (not force)'", adb.getScreenshotWithAdb(null));
 		boolean elementFound = false;
 		for (WebElement element : offerwallElements) {
-			if("noThanks".equals(element.getId())) {
+			if("noThanks".equals(element.getId()) || "noThanksOrangeOffer".equals(element.getId())) {
 				report.report("found element with id = 'noThanks' and about to click on it");
 				uiautomatorClient.click(element.getX(), element.getY());
 				report.step("clicked on {x} button");
@@ -370,12 +359,19 @@ public class MCTesterTests extends SystemTestCase4 {
 		elements.add("cover-img-icon");
 		elements.add("button_inner");
 		elements.add("stars");
+		elements.add("rateStars");
 		elements.add("icon_inner");
 		elements.add("title");
+		elements.add("cover-img-item");
+		elements.add("downloadInner");
+		elements.add("rate_text");
+		elements.add("download_button");
+		elements.add("desc");
+		
 		
 		List<WebElement> elementsToClick = new ArrayList<WebElement>();
 		for (WebElement webElement : offerwallElements) {
-			if(elements.contains(webElement.getClassName())) {
+			if(elements.contains(webElement.getClassName()) || elements.contains(webElement.getId())) {
 				elementsToClick.add(webElement);
 			}
 		}

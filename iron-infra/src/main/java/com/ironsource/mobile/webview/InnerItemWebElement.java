@@ -5,12 +5,12 @@ import il.co.topq.mobile.client.impl.WebElement;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AdItemWebElement {
+public class InnerItemWebElement {
 
-	private String appName;
+	private String appName = "undefined";
 	private List<WebElement> innerElements;
 
-	public AdItemWebElement() {
+	public InnerItemWebElement() {
 		innerElements = new ArrayList<WebElement>();
 	}
 

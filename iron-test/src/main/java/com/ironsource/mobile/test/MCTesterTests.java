@@ -2,6 +2,7 @@ package com.ironsource.mobile.test;
 
 import il.co.topq.mobile.client.impl.MobileClient;
 import il.co.topq.mobile.client.impl.WebElement;
+import il.co.topq.mobile.common.datamodel.CommandResponse;
 
 import java.util.List;
 
@@ -40,7 +41,9 @@ public class MCTesterTests extends SystemTestCase4 {
 	public static final String MCTESTER_ACTIVITY = "com.mobilecore.mctester.MainActivity";
 
 	private int logcatReportTimeout = 30000;
-	
+	private boolean landscapeMode = false;
+	private boolean removeInstalledApp = true;
+	private long waitForRsPlus = 150000;
 	
 	@Before
 	public void setup() throws Exception{
@@ -72,6 +75,11 @@ public class MCTesterTests extends SystemTestCase4 {
 		
 		adb.clearLogcatMessageRecorder();
 		
+		//TODO - next version
+//		if(landscapeMode) {
+//			uiautomatorClient.setOrientation("l");
+//		}
+	    
 	}
 
 	/**
@@ -84,12 +92,11 @@ public class MCTesterTests extends SystemTestCase4 {
 	 * @throws Exception
 	 */
 	@Test
-	@TestProperties(name = "capture test template", paramsInclude = {})
+	@TestProperties(name = "capture test template", paramsInclude = {"landscapeMode"})
 	public void testSetupTestsTemplate() throws Exception {
 			
 		report.report("retrieving robotium client");
 		robotiumClient = (MobileClient) mobile.getRobotiumClient();
-		
 		captureWebview();		
 	}
 
@@ -107,7 +114,7 @@ public class MCTesterTests extends SystemTestCase4 {
 	@Test
 	@TestProperties(name = "close offerwall with the {X} button", paramsInclude = {"logcatReportTimeout"})
 	public void testCloseOfferwallWithX() throws Exception {
-		
+	
 		adb.startActivity(adb.MCTESTER_PKG, adb.MCTESTER_ACTIVITY);
 
 		flowHtmlReport.addTitledImage("In App", adb.getScreenshotWithAdb(null));
@@ -149,7 +156,7 @@ public class MCTesterTests extends SystemTestCase4 {
 	 * @throws Exception
 	 */
 	@Test
-	@TestProperties(name = "full click to download flow", paramsInclude = {"logcatReportTimeout"})
+	@TestProperties(name = "full click to download flow", paramsInclude = {"waitForRsPlus", "logcatReportTimeout", "removeInstalledApp"})
 	public void testFullClickToDownloadFlow() throws Exception {
 		
 		flowHtmlReport.addTitledImage("Before MCTester Launch", adb.getScreenshotWithAdb(null));
@@ -177,8 +184,10 @@ public class MCTesterTests extends SystemTestCase4 {
 		Selector notCountrySelector = new Selector().setText(PlayStoreMessage.COUNTRY_SUPPORT);
 		Selector notSupporSelector = new Selector().setText(PlayStoreMessage.DEVICE_COMPATIBLE);
 		
+		String tempAppName = "not specified correctly";
 		boolean foundValidInstall = false;
 		for (InnerItemWebElement innerItemWebElement : innerItems) {
+			tempAppName = innerItemWebElement.getAppName();
 			report.step("clicking on item with title: " + innerItemWebElement.getAppName());
 			uiautomatorClient.click(innerItemWebElement.getItemWraper().getX(), innerItemWebElement.getItemWraper().getX());
 			mobile.waitForRSCode(RSCode.CLICK, FlowCode.OFFERWALL, 10000);
@@ -238,17 +247,19 @@ public class MCTesterTests extends SystemTestCase4 {
 			flowHtmlReport.addTitledImage("App Installed", adb.getScreenshotWithAdb(null));
 			
 			try{
-				mobile.waitForRSCode(RSCode.INSATLL, FlowCode.OFFERWALL, 5*60000);
+				mobile.waitForRSCode(RSCode.INSATLL, FlowCode.OFFERWALL, waitForRsPlus);
 			} catch (Exception e) {
-				report.report("rs code '+' wasn't reported after 5 min", Reporter.WARNING);
+				report.report("rs code '+' wasn't reported after " + waitForRsPlus + " millisecond", Reporter.WARNING);
 			}
-			
-			uiautomatorClient.click(new Selector().setText("UNINSTALL"));
-			
-			uiautomatorClient.registerClickUiObjectWatcher("uninstall", new Selector[]{new Selector().setText("Do you want to uninstall this app?")}, new Selector().setText("OK"));
-			if (!uiautomatorClient.waitForExists(new Selector().setText("INSTALL"), 60000)) {
-				report.report("uninstall didnt complete after 10 minutes", Reporter.WARNING);
-			} 
+			if(removeInstalledApp) {
+				report.report("about to uninstall " + tempAppName);
+				uiautomatorClient.click(new Selector().setText("UNINSTALL"));
+				
+				uiautomatorClient.registerClickUiObjectWatcher("uninstall", new Selector[]{new Selector().setText("Do you want to uninstall this app?")}, new Selector().setText("OK"));
+				if (!uiautomatorClient.waitForExists(new Selector().setText("INSTALL"), 120000)) {
+					report.report("uninstall didnt complete after 2 minutes", Reporter.WARNING);
+				} 
+			}
 			break;
 		}
 		if(!foundValidInstall) {
@@ -272,7 +283,7 @@ public class MCTesterTests extends SystemTestCase4 {
 	@Test
 	@TestProperties(name = "Test close offerwall using hardware button 'back'", paramsInclude = {"logcatReportTimeout"})
 	public void testCloseApplicationUsingBackButton() throws Exception {
-				
+	
 		adb.startActivity(adb.MCTESTER_PKG, adb.MCTESTER_ACTIVITY);
 		
 		if(!uiautomatorClient.waitForExists(new Selector().setText("Show (not force)"), 50000)) {
@@ -361,16 +372,19 @@ public class MCTesterTests extends SystemTestCase4 {
 			report.report("screen flow", flowHtmlReport.getHtmlReport(), Reporter.PASS, false, true, false, false);
 		}
 		adb.clearLogcat();
+		//TODO - next version
+		//uiautomatorClient.freezeRotation(false);
 		mobile.clearRecentApps();
 	}
+	
 	//all methods that are candidates to move to an upper abstraction level. 
 	private void captureWebview () throws Exception {
 		
 		report.report("launch MCTester App");
 		robotiumClient.launch(MCTESTER_ACTIVITY);
 		mobile.waitForManagerMessageToContain(MobileCoreMsgCode.OFFERWALL_MANAGER, "from:LOADING , to:READY_TO_SHOW" , 15000);
-		Thread.sleep(3000);
-		robotiumClient.clickOnButtonWithText("Show if ready");
+		Thread.sleep(4000);
+		CommandResponse res = robotiumClient.clickOnButtonWithText("Show if ready");
 		Thread.sleep(8000);
 		
 		report.report("gather all offerwall elements");
@@ -445,8 +459,35 @@ public class MCTesterTests extends SystemTestCase4 {
 		return logcatReportTimeout;
 	}
 
-	@ParameterProperties(description = "timeout in milliseconds to wait for RS code")
+	@ParameterProperties(description = "default timeout in milliseconds to wait for RS code report")
 	public void setLogcatReportTimeout(int logcatReportTimeout) {
 		this.logcatReportTimeout = logcatReportTimeout;
+	}
+	
+	public boolean isLandscapeMode() {
+		return landscapeMode;
+	}
+
+	@ParameterProperties(description = "landscape mode")
+	public void setLandscapeMode(boolean landscapeMode) {
+		this.landscapeMode = landscapeMode;
+	}
+	
+	public boolean isRemoveInstalledApp() {
+		return removeInstalledApp;
+	}
+
+	@ParameterProperties(description = "remove apps that successfuly installed")
+	public void setRemoveInstalledApp(boolean removeInstalledApp) {
+		this.removeInstalledApp = removeInstalledApp;
+	}
+
+	public long getWaitForRsPlus() {
+		return waitForRsPlus;
+	}
+
+	@ParameterProperties(description = "how long to wait for the rs '+' report in millisecond")
+	public void setWaitForRsPlus(long waitForRsPlus) {
+		this.waitForRsPlus = waitForRsPlus;
 	}
 }

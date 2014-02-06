@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
 
+import jsystem.framework.IgnoreMethod;
 import jsystem.framework.report.Reporter;
 import jsystem.framework.system.SystemObjectImpl;
 
@@ -212,20 +213,14 @@ public class ADBConnection extends SystemObjectImpl implements IDeviceChangeList
 
 	public void terminateUiAutomatorServer() throws Exception {
 		report.report("about to terminate uiautomator server...");
-		// boolean terminated = false;
-		// if (isUiAutomatorServerAlive()) {
-		// String response = executeShellCommand("killall uiautomator");
-		// if (response.contains("Terminated")) {
-		// terminated = true;
-		// }
-		// } else {
-		// report.report("uiautomator server is already terminated, skipping action");
-		// terminated = true;
-		// }
-		// if (!terminated) {
-		// throw new Exception("uiautomator server could not be stopped");
-		// }
-
+		report.report("startig uiautomator server");
+		String psRes = executeShellCommand("ps | grep uiautomator");
+		if (psRes.contains("uiautomator")) {
+			String[] ps = psRes.split("\\s+");
+			report.report("kill app with name " + ps[1]);
+			executeShellCommand("kill " + ps[1]);
+			Thread.sleep(2000);
+		}
 	}
 
 	@Deprecated
@@ -249,6 +244,7 @@ public class ADBConnection extends SystemObjectImpl implements IDeviceChangeList
 	 * The close method is called in the end of the while execution.<br>
 	 * This can be a good place to free resources.<br>
 	 */
+	@Override
 	public void close() {
 		report.report("closing ADBConnection");
 		try {
@@ -259,11 +255,13 @@ public class ADBConnection extends SystemObjectImpl implements IDeviceChangeList
 		super.close();
 	}
 
+
 	@Override
 	public void deviceConnected(IDevice device) {
 		this.device = device;
 
 	}
+
 
 	@Override
 	public void deviceDisconnected(IDevice device) {

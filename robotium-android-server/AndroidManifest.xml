@@ -10,7 +10,7 @@
 
     <uses-permission android:name="android.permission.RUN_INSTRUMENTATION" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <instrumentation android:targetPackage="com.dor.mobilecore.mctester" 
+    <instrumentation android:targetPackage="com.mobilecore.mctester" 
         android:name="il.co.topq.mobile.server.impl.RobotiumExecutor" />
 
     <application

@@ -23,13 +23,13 @@ import com.ironsource.mobile.fiddler.FiddlerJsonRpcClient;
 //TODO - use CommandResponse for robotium commands verifications
 public class MobileSO extends SystemObjectImpl {
 
-
 	private String serverHost;
-	private int serverPort;	
+	private int serverPort;
 	private ADBConnection adbConnection;
-	private AutomatorService uiAutomatorClient; 
+	private AutomatorService uiAutomatorClient;
 	private MobileClientInterface robotiumClient;
-	
+	private String appName;
+
 	/**
 	 * The init() method will be called by JSystem after the instantiation of
 	 * the system object. <br>
@@ -43,40 +43,45 @@ public class MobileSO extends SystemObjectImpl {
 		adbConnection.startUiAutomatorServer();
 		adbConnection.startRobotiumServer();
 		report.report("Initiate ui-automator client");
-		uiAutomatorClient = DeviceClient.getUiAutomatorClient("http://127.0.1:9008");
+		uiAutomatorClient = DeviceClient.getUiAutomatorClient("http://127.0.0.1:9008");
 		report.report("Initiate robotium client");
 		robotiumClient = new MobileClient(serverHost, serverPort);
 	}
-	
+
 	public File capturescreenWithRobotium() throws Exception {
 		report.report("capture screen");
 		File f = robotiumClient.takeScreenshot();
 		return f;
 	}
-	
+
 	public List<LogCatMessage> getFilterdMessages() throws Exception {
 		List<LogCatFilter> filters = LogCatFilter.fromString("\"RS\"", LogLevel.DEBUG);
-		//TODO - remove this
-		//filters.add(new LogCatFilter("", "MobileCore" , "", "", "com.mobliecore.mctesterqa:mcServiceProcess", LogLevel.DEBUG));
+		// TODO - remove this
+		// filters.add(new LogCatFilter("", "MobileCore" , "", "",
+		// "com.mobliecore.mctesterqa:mcServiceProcess", LogLevel.DEBUG));
 		List<LogCatMessage> messages = null;
 		messages = adbConnection.getLogcatMessages(new FilteredLogcatListener(filters, false));
-		
+
 		for (int i = 0; i < messages.size(); i++) {
-			String tag  = messages.get(i).getTag();
-			if(tag.contains("dalvikvm") || tag.equals("TilesManager")) {
+			String tag = messages.get(i).getTag();
+			if (tag.contains("dalvikvm") || tag.equals("TilesManager")) {
 				messages.remove(i);
 			}
 		}
-		return messages; 
+		return messages;
 	}
-	
+
 	/**
-	 * this method wait for specified manager ( OfferWallManger, StickeezManager...),
-	 * to report message to logcat that contains the desired string passed to it.  
+	 * this method wait for specified manager ( OfferWallManger,
+	 * StickeezManager...), to report message to logcat that contains the
+	 * desired string passed to it.
 	 * 
-	 * @param code - the manager
-	 * @param msg - content to wait for
-	 * @param timeout - timeout in milliseconds
+	 * @param code
+	 *            - the manager
+	 * @param msg
+	 *            - content to wait for
+	 * @param timeout
+	 *            - timeout in milliseconds
 	 * @throws Exception
 	 */
 	public void waitForManagerMessageToContain(MobileCoreMsgCode code, String msg, int timeout) throws Exception {
@@ -101,43 +106,45 @@ public class MobileSO extends SystemObjectImpl {
 			Thread.sleep(1000);
 		}
 	}
-	
+
 	/**
 	 * gets offerwall id as string
-	 *
+	 * 
 	 * @return
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	public String getOwId() throws Exception {
 		List<LogCatMessage> messages = adbConnection.getMobileCoreLogcatMessages(MobileCoreMsgCode.MOBILECORE_REPORT);
-		for(LogCatMessage message : messages) {
-			if(message.getMessage().contains("\"ow_id\"")) {
-				if(message.getMessage().contains("bn_ic_2")) {
+		for (LogCatMessage message : messages) {
+			if (message.getMessage().contains("\"ow_id\"")) {
+				if (message.getMessage().contains("bn_ic_2")) {
 					return "bn_ic_2";
-				} else if(message.getMessage().contains("2_ic_big")) {
+				} else if (message.getMessage().contains("2_ic_big")) {
 					return "2_ic_big";
 				}
 			}
 		}
 		return "";
 	}
-	
-	
-	
-	
+
 	/**
 	 * this method waits for "RS" code to appear in logcat by certain flow name.
 	 * 
-	 * @param rsCode - RSCode enum type 
-	 * @param flowCode - FlowCode enum type
-	 * @param timeout - int timeout in milliseconds
+	 * @param rsCode
+	 *            - RSCode enum type
+	 * @param flowCode
+	 *            - FlowCode enum type
+	 * @param timeout
+	 *            - int timeout in milliseconds
 	 * 
-	 * @throws Exception in case of timeout or "RS" with "E" was reported.
+	 * @throws Exception
+	 *             in case of timeout or "RS" with "E" was reported.
 	 */
 	public void waitForRSCode(RSCode rsCode, FlowCode flowCode, long timeout) throws Exception {
 		long now = System.currentTimeMillis();
 		boolean exist = false;
-		report.report("waiting for RS Code '"+ rsCode.getRsCode() +"' for Flow " + flowCode.getFlowCode() + "with timeout of " + timeout + " millis");
+		report.report("waiting for RS Code '" + rsCode.getRsCode() + "' for Flow " + flowCode.getFlowCode() + "with timeout of " + timeout
+				+ " millis");
 		List<LogCatMessage> messages;
 
 		while (!exist) {
@@ -147,8 +154,7 @@ public class MobileSO extends SystemObjectImpl {
 			messages = adbConnection.getMobileCoreLogcatMessages(MobileCoreMsgCode.RS);
 			for (LogCatMessage logCatMessage : messages) {
 				String msg = logCatMessage.getMessage();
-				
-				
+
 				if (msg.contains("\"RS\":\"" + rsCode.getRsCode() + "\"") && msg.contains("\"Flow\":\"" + flowCode.getFlowCode() + "\"")) {
 					report.step("Found RS Code: " + rsCode.getRsCode());
 					exist = true;
@@ -157,29 +163,25 @@ public class MobileSO extends SystemObjectImpl {
 					JSONObject jsonMsg = LogcatHelper.extractMsgAsJson(logCatMessage.getMessage());
 					String errorMsg = (String) jsonMsg.get("Err");
 					report.report("Error: Found RS Code: E while waiting for " + rsCode.getRsCode(), Reporter.FAIL);
-					
+
 					throw new Exception("Error message: " + errorMsg);
 				}
 			}
 			Thread.sleep(1000);
 		}
 	}
-	
-	
-	
-	
+
 	/**
 	 * clear open activities
 	 * 
-	 * 1. press home button.
-	 * 2. press recent activities button.
-	 * 3. try to swipe out all open activities.
-	 * 4. press home button.
+	 * 1. press home button. 2. press recent activities button. 3. try to swipe
+	 * out all open activities. 4. press home button.
 	 * 
 	 * @throws Exception
 	 * 
 	 */
-	//TODO - each rom implemented the recent activity screen in a different way.
+	// TODO - each rom implemented the recent activity screen in a different
+	// way.
 	public void clearRecentApps() throws Exception {
 		uiAutomatorClient.pressKey("home");
 		Thread.sleep(1000);
@@ -188,23 +190,21 @@ public class MobileSO extends SystemObjectImpl {
 		report.step("about to close all open apps");
 		List<Selector> recentSelectors = new ArrayList<Selector>();
 		recentSelectors.add(new Selector().setText("Robotium Server"));
-		recentSelectors.add(new Selector().setText("MCTester"));
+		recentSelectors.add(new Selector().setText("NativeAds-MCTester"));
 		recentSelectors.add(new Selector().setText("Google Play Store"));
-		
+
 		for (Selector selector : recentSelectors) {
-			if(uiAutomatorClient.waitForExists(selector, 1000)) {
+			if (uiAutomatorClient.waitForExists(selector, 1000)) {
 				uiAutomatorClient.swipe(selector, "r", 5);
 				report.report("closed " + selector.getText() + "app");
 			}
-			Thread.sleep(1000);		
+			Thread.sleep(1000);
 		}
 		report.step("no more apps to close");
-		
+
 		uiAutomatorClient.pressKey("home");
 	}
-	
-	
-	
+
 	/**
 	 * The close method is called in the end of the while execution.<br>
 	 * This can be a good place to free resources.<br>
@@ -237,11 +237,20 @@ public class MobileSO extends SystemObjectImpl {
 	public void setServerPort(int serverPort) {
 		this.serverPort = serverPort;
 	}
-	
+
 	public AutomatorService getUiAutomatorClient() {
 		return uiAutomatorClient;
 	}
+
 	public ADBConnection getAdbConnection() {
 		return adbConnection;
+	}
+
+	public String getAppName() {
+		return appName;
+	}
+
+	public void setAppName(String appName) {
+		this.appName = appName;
 	}
 }

@@ -26,7 +26,7 @@ public class FiddlerJsonRpcClient extends SystemObjectImpl {
 	public void init() throws Exception {
 		super.init();
 		String response = "";
-		runFidderExecutabe();
+		//runFidderExecutabe();
 		try {
 		    response = (String)execute(FiddlerApi.ping());
 		} catch (Exception e) {

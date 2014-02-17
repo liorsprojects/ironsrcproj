@@ -39,14 +39,18 @@ import com.android.ddmlib.logcat.LogCatReceiverTask;
 public class ADBConnection extends SystemObjectImpl implements IDeviceChangeListener {
 
 	public final String ROBOTIUM_SERVER_PKG = "il.co.topq.mobile.server.application";
-	public final String ROBOTIUM_SERVER_ACTIVITY = "RobotiumServerActivity";
-	public final String MCTESTER_PKG = "com.mobilecore.mctester";
-	public final String MCTESTER_ACTIVITY = "MainActivity";
+	public final String ROBOTIUM_SERVER_ACTIVITY = "il.co.topq.mobile.server.application.RobotiumServerActivity";
+	public final String MCTESTER_PKG = "com.dor.mobilecore.mctester";
+	public final String MCTESTER_ACTIVITY = "com.mobilecore.mctester.MainActivity";
 
 	private IDevice device;
 	private AndroidDebugBridge adb;
 	private File adbLocation;
 	private MobileCoreLogcatRecorder mobileCoreLogcatRecorder;
+	//TODO expose to SUT
+//	private String packageName;
+//	private String activityName;
+	
 
 	@Override
 	public void init() throws Exception {
@@ -146,11 +150,11 @@ public class ADBConnection extends SystemObjectImpl implements IDeviceChangeList
 
 	// start activity with an adb command
 	public boolean startActivity(String packageName, String activityName) throws Exception {
-		String activity = String.format("%s/.%s", packageName, activityName);
+		String activity = String.format("%s/%s", packageName, activityName);
 		report.report("starting activity: " + activity);
 		String startRes = executeShellCommand("am start -n " + activity);
 		if (startRes.contains("Error type 3")) {
-			report.report("activity not found");
+			report.report("activity with package: " + packageName + "and activity: " +activityName + "not found");
 			return false;
 		}
 		return true;
@@ -195,7 +199,7 @@ public class ADBConnection extends SystemObjectImpl implements IDeviceChangeList
 		Thread.sleep(2000);
 		device.createForward(9008, 9008);
 		report.report("check ui server communication with ping");
-		AutomatorService service = DeviceClient.getUiAutomatorClient("http://172.17.25.133:9008");
+		AutomatorService service = DeviceClient.getUiAutomatorClient("http://192.168.56.101:9008");
 		String pong = service.ping();
 		if(!"pong".equals(pong)) {
 			throw new Exception("could'nt establish connection with uiautomator service");

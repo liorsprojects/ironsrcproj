@@ -23,6 +23,7 @@ import com.ironsource.mobile.MobileCoreMsgCode;
 import com.ironsource.mobile.MobileSO;
 import com.ironsource.mobile.PlayStoreMessage;
 import com.ironsource.mobile.RSCode;
+import com.ironsource.mobile.fiddler.FiddlerApi;
 import com.ironsource.mobile.fiddler.FiddlerJsonRpcClient;
 import com.ironsource.mobile.reporters.ImageFlowHtmlReport;
 import com.ironsource.mobile.webview.InnerItemWebElement;
@@ -38,7 +39,9 @@ public class MCTesterTests extends SystemTestCase4 {
 	private static FiddlerJsonRpcClient fiddlerJsonRpcClient; 
 	private ImageFlowHtmlReport flowHtmlReport;
 	
-	public static final String MCTESTER_ACTIVITY = "com.mobilecore.mctester.MainActivity";
+	public static final String ROBOTIUM_MCTESTER_PACKAGE = "com.mobilecore.mctester";
+	public static final String ROBOTIUM_MCTESTER_ACTIVITY = "com.mobilecore.mctester.MainActivity";
+
 
 	private int logcatReportTimeout = 30000;
 	private boolean landscapeMode = false;
@@ -97,6 +100,7 @@ public class MCTesterTests extends SystemTestCase4 {
 			
 		report.report("retrieving robotium client");
 		robotiumClient = (MobileClient) mobile.getRobotiumClient();
+		//String res = (String) fiddlerJsonRpcClient.execute(FiddlerApi.setOfferwallJsonPath("offerwall", "C:\\\\Users\\\\lior_g\\\\ow.json"));
 		captureWebview();		
 	}
 
@@ -381,7 +385,7 @@ public class MCTesterTests extends SystemTestCase4 {
 	private void captureWebview () throws Exception {
 		
 		report.report("launch MCTester App");
-		robotiumClient.launch(MCTESTER_ACTIVITY);
+		robotiumClient.launch(ROBOTIUM_MCTESTER_ACTIVITY);
 		mobile.waitForManagerMessageToContain(MobileCoreMsgCode.OFFERWALL_MANAGER, "from:LOADING , to:READY_TO_SHOW" , 15000);
 		Thread.sleep(4000);
 		CommandResponse res = robotiumClient.clickOnButtonWithText("Show if ready");
@@ -405,7 +409,7 @@ public class MCTesterTests extends SystemTestCase4 {
 		report.report("about to close MCTester and Robotium Server");
 		robotiumClient.finishOpenedActivities();
 		robotiumClient.closeConnection();
-		adb.stopActivity(MCTESTER_ACTIVITY);
+		adb.stopActivity(ROBOTIUM_MCTESTER_ACTIVITY);
 	}
 	
 	/**

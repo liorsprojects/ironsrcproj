@@ -3,7 +3,7 @@
     	<class>com.ironsource.mobile.MobileSO</class>
         <serverHost>172.17.25.133</serverHost>
         <serverPort>4321</serverPort>	
-	<appName>NativeAds-MCTester</appName>
+	<appName>MCTester</appName>
     </mobile>
     <fiddlerJsonRpcClient>
         	<class>com.ironsource.mobile.fiddler.FiddlerJsonRpcClient</class>

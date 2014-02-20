@@ -40,7 +40,7 @@ public class ADBConnection extends SystemObjectImpl implements IDeviceChangeList
 
 	public final String ROBOTIUM_SERVER_PKG = "il.co.topq.mobile.server.application";
 	public final String ROBOTIUM_SERVER_ACTIVITY = "il.co.topq.mobile.server.application.RobotiumServerActivity";
-	public final String MCTESTER_PKG = "com.dor.mobilecore.mctester";
+	public final String MCTESTER_PKG = "com.mobilecore.mctester";
 	public final String MCTESTER_ACTIVITY = "com.mobilecore.mctester.MainActivity";
 
 	private IDevice device;
@@ -199,7 +199,7 @@ public class ADBConnection extends SystemObjectImpl implements IDeviceChangeList
 		Thread.sleep(2000);
 		device.createForward(9008, 9008);
 		report.report("check ui server communication with ping");
-		AutomatorService service = DeviceClient.getUiAutomatorClient("http://192.168.56.101:9008");
+		AutomatorService service = DeviceClient.getUiAutomatorClient("http://172.17.25.133:9008");
 		String pong = service.ping();
 		if(!"pong".equals(pong)) {
 			throw new Exception("could'nt establish connection with uiautomator service");

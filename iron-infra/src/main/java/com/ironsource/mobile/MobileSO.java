@@ -189,14 +189,14 @@ public class MobileSO extends SystemObjectImpl {
 		Thread.sleep(1000);
 		report.step("about to close all open apps");
 		List<Selector> recentSelectors = new ArrayList<Selector>();
+		recentSelectors.add(new Selector().setText("MCTester"));
 		recentSelectors.add(new Selector().setText("Robotium Server"));
-		recentSelectors.add(new Selector().setText("NativeAds-MCTester"));
 		recentSelectors.add(new Selector().setText("Google Play Store"));
 
 		for (Selector selector : recentSelectors) {
 			if (uiAutomatorClient.waitForExists(selector, 1000)) {
 				uiAutomatorClient.swipe(selector, "r", 5);
-				report.report("closed " + selector.getText() + "app");
+				report.report("closed " + selector.getText() + " app");
 			}
 			Thread.sleep(1000);
 		}

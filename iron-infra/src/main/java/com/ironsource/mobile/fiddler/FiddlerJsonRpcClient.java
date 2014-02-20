@@ -26,7 +26,7 @@ public class FiddlerJsonRpcClient extends SystemObjectImpl {
 	public void init() throws Exception {
 		super.init();
 		String response = "";
-		//runFidderExecutabe();
+		runFiddlerExecutabe();
 		try {
 		    response = (String)execute(FiddlerApi.ping());
 		} catch (Exception e) {
@@ -40,7 +40,7 @@ public class FiddlerJsonRpcClient extends SystemObjectImpl {
 		}
 	}
 	
-	private void runFidderExecutabe() {
+	private void runFiddlerExecutabe() {
 		
 		report.report("about to run IronSourceFiddler executable");
 		Runnable r = new Runnable() {

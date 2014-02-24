@@ -7,6 +7,7 @@
     </mobile>
     <fiddlerJsonRpcClient>
         	<class>com.ironsource.mobile.fiddler.FiddlerJsonRpcClient</class>
+        	<executablePath>C:/AutomationTool/tools/fiddler_support/IronSourceFiddler.Client.exe</executablePath>
 		<host>127.0.0.1</host>
 		<port>3333</port>
     </fiddlerJsonRpcClient>  

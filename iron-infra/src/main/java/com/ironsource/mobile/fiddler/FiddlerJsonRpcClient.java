@@ -20,6 +20,9 @@ public class FiddlerJsonRpcClient extends SystemObjectImpl {
 
 	private String host;
 	private int port;
+	private String executablePath;
+	
+
 	private Thread t;
 	
 	@Override
@@ -47,7 +50,7 @@ public class FiddlerJsonRpcClient extends SystemObjectImpl {
 			
 		    public void run() {
 			    try {
-			    	Runtime.getRuntime().exec("IronSourceFiddler.Client.exe");
+			    	Runtime.getRuntime().exec("C:\\AutomationTool\\tools\\fiddler_support\\IronSourceFiddler.Client.exe");
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -138,5 +141,12 @@ public class FiddlerJsonRpcClient extends SystemObjectImpl {
 	
 	public void setPort(int port) {
 		this.port = port;
+	}
+	public String getExecutablePath() {
+		return executablePath;
+	}
+
+	public void setExecutablePath(String executablePath) {
+		this.executablePath = executablePath;
 	}
 }

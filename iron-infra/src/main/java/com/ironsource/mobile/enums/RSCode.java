@@ -1,4 +1,4 @@
-package com.ironsource.mobile;
+package com.ironsource.mobile.enums;
 
 //TODO - add this wherever possible
 public enum RSCode {

@@ -1,4 +1,4 @@
-package com.ironsource.mobile;
+package com.ironsource.mobile.notinuse;
 
 import jsystem.extensions.analyzers.text.FindText;
 import jsystem.framework.IgnoreMethod;

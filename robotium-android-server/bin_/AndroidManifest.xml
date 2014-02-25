@@ -1,0 +1,42 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="il.co.topq.mobile.server.application"
+    android:sharedUserId="il.co.topq.mobile"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    <uses-sdk
+        android:minSdkVersion="16"
+        android:targetSdkVersion="16" />
+
+    <uses-permission android:name="android.permission.RUN_INSTRUMENTATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <instrumentation android:targetPackage="com.dor.mobilecore.mctester" 
+        android:name="il.co.topq.mobile.server.impl.RobotiumExecutor" />
+
+    <application
+        android:debuggable="true"
+        android:description="@string/app_name"
+        android:icon="@drawable/robotium"
+        android:label="@string/app_name"
+        android:logo="@drawable/robotium"
+        android:theme="@style/AppTheme" >
+        <activity
+            android:name="il.co.topq.mobile.server.application.RobotiumServerActivity"
+            android:label="@string/title_activity_robotium_server" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name="il.co.topq.mobile.server.impl.ExecutorService"
+            android:process=":remote" >
+            <intent-filter>
+                <action android:name="il.co.topq.mobile.server.impl.ExecutorService" />
+            </intent-filter>
+        </service>
+    </application>
+
+</manifest>

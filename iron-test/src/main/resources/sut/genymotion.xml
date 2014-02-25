@@ -6,6 +6,7 @@
     </mobile>
     <fiddlerJsonRpcClient>
         	<class>com.ironsource.mobile.fiddler.FiddlerJsonRpcClient</class>
+ 
 		<host>127.0.0.1</host>
 		<port>3333</port>
     </fiddlerJsonRpcClient>  

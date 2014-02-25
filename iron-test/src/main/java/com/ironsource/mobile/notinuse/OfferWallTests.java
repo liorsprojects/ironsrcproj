@@ -1,3 +1,4 @@
+package com.ironsource.mobile.notinuse;
 //package com.ironsource.mobile.test;
 //
 //import il.co.topq.mobile.client.impl.MobileClient;

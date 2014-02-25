@@ -1,4 +1,4 @@
-package com.ironsource.mobile;
+package com.ironsource.mobile.enums;
 
 public enum MobileCoreMsgCode {
 

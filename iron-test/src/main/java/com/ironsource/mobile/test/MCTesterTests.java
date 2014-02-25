@@ -18,11 +18,11 @@ import org.topq.uiautomator.AutomatorService;
 import org.topq.uiautomator.Selector;
 
 import com.ironsource.mobile.ADBConnection;
-import com.ironsource.mobile.FlowCode;
-import com.ironsource.mobile.MobileCoreMsgCode;
 import com.ironsource.mobile.MobileSO;
-import com.ironsource.mobile.PlayStoreMessage;
-import com.ironsource.mobile.RSCode;
+import com.ironsource.mobile.enums.FlowCode;
+import com.ironsource.mobile.enums.MobileCoreMsgCode;
+import com.ironsource.mobile.enums.PlayStoreMessage;
+import com.ironsource.mobile.enums.RSCode;
 import com.ironsource.mobile.fiddler.FiddlerApi;
 import com.ironsource.mobile.fiddler.FiddlerJsonRpcClient;
 import com.ironsource.mobile.reporters.ImageFlowHtmlReport;

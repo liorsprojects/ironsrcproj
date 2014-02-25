@@ -18,6 +18,9 @@ import org.topq.uiautomator.client.DeviceClient;
 import com.android.ddmlib.Log.LogLevel;
 import com.android.ddmlib.logcat.LogCatFilter;
 import com.android.ddmlib.logcat.LogCatMessage;
+import com.ironsource.mobile.enums.FlowCode;
+import com.ironsource.mobile.enums.MobileCoreMsgCode;
+import com.ironsource.mobile.enums.RSCode;
 import com.ironsource.mobile.fiddler.FiddlerJsonRpcClient;
 
 //TODO - use CommandResponse for robotium commands verifications

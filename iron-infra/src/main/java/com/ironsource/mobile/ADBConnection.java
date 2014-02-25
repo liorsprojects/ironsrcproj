@@ -34,6 +34,7 @@ import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.ddmlib.logcat.LogCatReceiverTask;
+import com.ironsource.mobile.enums.MobileCoreMsgCode;
 
 //TODO - forward also automatically
 public class ADBConnection extends SystemObjectImpl implements IDeviceChangeListener {

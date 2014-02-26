@@ -124,11 +124,11 @@ public class MCTesterTests extends SystemTestCase4 {
 		flowHtmlReport.addTitledImage("In App", adb.getScreenshotWithAdb(null));
 		
 		report.step("MCTester Launched");
-		
 		uiautomatorClient.click(new Selector().setText("Show (not force)"));
 		report.report("wait for transiton of webview to complete");
 		
 		mobile.waitForRSCode(RSCode.WALL, FlowCode.OFFERWALL, logcatReportTimeout);
+		
 		mobile.waitForRSCode(RSCode.IMPRESSION, FlowCode.OFFERWALL, logcatReportTimeout);
 		
 		flowHtmlReport.addTitledImage("Clicked on 'Show (not force)'", adb.getScreenshotWithAdb(null));

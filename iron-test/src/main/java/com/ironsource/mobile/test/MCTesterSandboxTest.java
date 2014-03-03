@@ -14,6 +14,7 @@ import junit.framework.SystemTestCase4;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.python.modules.thread;
 import org.topq.uiautomator.AutomatorService;
 import org.topq.uiautomator.Selector;
 
@@ -29,7 +30,7 @@ import com.ironsource.mobile.reporters.ImageFlowHtmlReport;
 import com.ironsource.mobile.webview.InnerItemWebElement;
 import com.ironsource.mobile.webview.OfferWallWebView;
 
-public class MCTesterTests extends SystemTestCase4 {
+public class MCTesterSandboxTest extends SystemTestCase4 {
 
 	private static MobileSO mobile;
 	private static ADBConnection adb;
@@ -85,6 +86,44 @@ public class MCTesterTests extends SystemTestCase4 {
 	    
 	}
 
+	@Test
+	public void testWebviewRobotiumBug() throws Exception {
+		robotiumClient = (MobileClient) mobile.getRobotiumClient();
+		robotiumClient.launch(ROBOTIUM_MCTESTER_ACTIVITY);
+		mobile.waitForManagerMessageToContain(MobileCoreMsgCode.OFFERWALL_MANAGER, "from:LOADING , to:READY_TO_SHOW" , 15000);
+		Thread.sleep(4000);
+		CommandResponse res = robotiumClient.clickOnButtonWithText("Show if ready");
+		Thread.sleep(8000);
+	
+		List<WebElement> offerwallElements = robotiumClient.getCurrentWebElements();
+		System.out.println("===Elements=1=\n");
+		for(WebElement element: offerwallElements) {
+			System.out.println("--element--");
+			System.out.println(element.getTag());
+			System.out.println(element.getId());
+			System.out.println(element.getClassName());
+			System.out.println(element.getText());
+			System.out.println(element.getX());
+			System.out.println(element.getY());
+			System.out.println("---------\n");
+		}
+		offerwallElements = robotiumClient.getCurrentWebElements();
+		System.out.println("===Elements=2=\n");
+		for(WebElement element: offerwallElements) {
+			System.out.println("--element--");
+			System.out.println(element.getTag());
+			System.out.println(element.getId());
+			System.out.println(element.getClassName());
+			System.out.println(element.getText());
+			System.out.println(element.getX());
+			System.out.println(element.getY());
+			System.out.println("---------\n");	
+		}
+		uiautomatorClient.click(300, 400);
+		Thread.sleep(2000);
+	}
+	
+	
 	/**
 	 * 1. initialize all clients and servers.
 	 * 2. launching the MCtester application.

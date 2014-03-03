@@ -50,7 +50,7 @@ public class FiddlerJsonRpcClient extends SystemObjectImpl {
 			
 		    public void run() {
 			    try {
-			    	Runtime.getRuntime().exec(executablePath);
+			    	Runtime.getRuntime().exec("cmd /c start " + executablePath);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
